@@ -1,0 +1,21 @@
+syntax = "proto3";
+
+option objc_class_prefix = "HLW";
+
+package magicmirror;
+
+// The image mirror service definition.
+service ImageMirror {
+  // Ask for a flipped image
+  rpc FlipImage (ImageFlipRequest) returns (ImageFlipReply) {}
+}
+
+// The request message containing the image.
+message ImageFlipRequest {
+  string image = 1;
+}
+
+// The response message containing the flipped image
+message ImageFlipReply {
+  string image = 1;
+}

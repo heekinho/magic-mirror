@@ -30,3 +30,13 @@
 *.exe
 *.out
 *.app
+
+# Generated files
+*.grpc.pb.cc
+*.grpc.pb.h
+*.pb.cc
+*.pb.h
+
+# Project Executables
+magic_mirror_server
+magic_mirror_client

@@ -1,21 +1,3 @@
-/*
- *
- * Copyright 2015 gRPC authors.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- *
- */
-
 #include <iostream>
 #include <memory>
 #include <string>
@@ -42,6 +24,25 @@ class ImageMirrorClient {
  public:
   explicit ImageMirrorClient(std::shared_ptr<Channel> channel)
       : stub_(ImageMirror::NewStub(channel)) {}
+
+  int run(const std::string &input, const std::string &output,
+      FlipType flip_type) {
+
+    cv::Mat image = cv::imread(input, 0); // Read it grayscale
+
+    if (!image.data) {
+      std::cout << "Could not open or find the image" << std::endl;
+      return -1;
+    }
+
+    std::string imgstr = std::string(reinterpret_cast<const char*>(image.data));
+    std::string reply = FlipImage(imgstr, image.cols, image.rows,
+        flip_type); // The actual RPC call!
+
+    cv::Mat flipped = cv::Mat(image.rows, image.cols, CV_8UC1, &reply[0u]);
+    imwrite(output, flipped);
+    std::cout << "Image saved: " << output << std::endl;
+  }
 
   // Assembles the client's payload, sends it and presents the response back
   // from the server.
@@ -117,17 +118,8 @@ static void show_usage(std::string name){
             << std::endl;
 }
 
+
 int main(int argc, char** argv) {
-  // Instantiate the client. It requires a channel, out of which the actual RPCs
-  // are created. This channel models a connection to an endpoint (in this case,
-  // localhost at port 50051). We indicate that the channel isn't authenticated
-  // (use of InsecureChannelCredentials()).
-  ImageMirrorClient mirror(grpc::CreateChannel(
-      "localhost:50051", grpc::InsecureChannelCredentials()));
-
-  // Default flip type
-  FlipType flip_type = FlipType::HORIZONTAL;
-
   if (argc <= 2){
     show_usage(argv[0]);
     return 0;
@@ -138,6 +130,9 @@ int main(int argc, char** argv) {
   ftmap["horizontal"] = FlipType::HORIZONTAL;
   ftmap["vertical"] = FlipType::VERTICAL;
   ftmap["both"] = FlipType::BOTH;
+
+  // Default flip type
+  FlipType flip_type = FlipType::HORIZONTAL;
 
   // Extract arguments
   for (int i = 1; i < argc; ++i) {
@@ -160,22 +155,14 @@ int main(int argc, char** argv) {
     }
   }
 
-  std::string img = argv[1];
-  std::string destination_path = argv[2];
+  // Instantiate the client. It requires a channel, out of which the actual RPCs
+  // are created. This channel models a connection to an endpoint (in this case,
+  // localhost at port 50051). We indicate that the channel isn't authenticated
+  // (use of InsecureChannelCredentials()).
+  ImageMirrorClient mirror(grpc::CreateChannel(
+      "localhost:50051", grpc::InsecureChannelCredentials()));
 
-  cv::Mat image = cv::imread(img, 0); // Read it grayscale
-
-  if(!image.data){
-    std::cout << "Could not open or find the image" << std::endl;
-    return -1;
-  }
-
-  std::string imgstr = std::string( reinterpret_cast<const char*>(image.data ) );
-  std::string reply = mirror.FlipImage( imgstr , image.cols, image.rows, flip_type ); // The actual RPC call!
-
-  cv::Mat flipped = cv::Mat(image.rows, image.cols, CV_8UC1, &reply[0u]);
-  imwrite(destination_path, flipped);
-  std::cout << "Image saved: " << destination_path << std::endl;
+  mirror.run(argv[1], argv[2], flip_type);
 
   return 0;
 }

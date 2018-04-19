@@ -1,7 +1,7 @@
 HOST_SYSTEM = $(shell uname | cut -f 1 -d_)
 SYSTEM ?= $(HOST_SYSTEM)
 CXX = g++
-CPPFLAGS += `pkg-config --cflags protobuf grpc`
+CPPFLAGS += -g `pkg-config --cflags protobuf grpc`
 CXXFLAGS += -std=c++11
 ifeq ($(SYSTEM),Darwin)
 LDFLAGS += -L/usr/local/lib `pkg-config --libs protobuf grpc++ grpc`\
@@ -29,7 +29,7 @@ all: system-check magic_mirror_client magic_mirror_server
 magic_mirror_client: magicmirror.pb.o magicmirror.grpc.pb.o magic_mirror_client.o
 	$(CXX) $^ $(CLIENT_LDFLAGS) -o $@
 
-magic_mirror_server: magicmirror.pb.o magicmirror.grpc.pb.o magic_mirror_server.o
+magic_mirror_server: image_operations.o magicmirror.pb.o magicmirror.grpc.pb.o magic_mirror_server.o
 	$(CXX) $^ $(LDFLAGS) -o $@
 
 .PRECIOUS: %.grpc.pb.cc

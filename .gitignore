@@ -40,3 +40,7 @@
 # Project Executables
 magic_mirror_server
 magic_mirror_client
+
+# Eclipse project files
+.project
+.cproject

@@ -8,6 +8,7 @@
 #include <grpc/support/log.h>
 
 #include "magicmirror.grpc.pb.h"
+#include "image_operations.h"
 
 using grpc::Server;
 using grpc::ServerAsyncResponseWriter;
@@ -19,47 +20,6 @@ using magicmirror::ImageFlipRequest;
 using magicmirror::ImageFlipReply;
 using magicmirror::ImageMirror;
 using magicmirror::FlipType;
-
-//Helper class style is the best here?
-class ImageOperations { 
-  public:
-    
-    /**
-     * Flips the image horizontally.
-     * This is a somewhat naive implementation and can be tuned
-     * This version do not change original image
-     */
-    static char* FlipVertical(const char* image, size_t cols, size_t rows) {
-      size_t num_bytes = rows * cols;
-      char* result = new char[num_bytes];
-
-      for (int row = 0; row < rows; row++){
-        // Here we can copy entire rows
-        memcpy(result + row * cols, image + (rows - 1 - row) * cols, sizeof(char) * cols);
-      }
-
-      return result;
-    };
-
-    /**
-     * Flips the image horizontally.
-     * This is a somewhat naive implementation and can be tuned
-     * This version do not change original image
-     */
-    static char* FlipHorizontal(const char *image, size_t cols, size_t rows) {
-      size_t num_bytes = rows * cols;
-      char* result = new char[num_bytes];
-
-      for (int row = 0; row < rows; row++) {
-        for (int col = 0; col < cols; col++) {
-          result[row * cols + col] = image[row * cols + (cols - col - 1)];
-        }
-      }
-
-      return result;
-    };
-
-};
 
 
 class ServerImpl final {
@@ -92,7 +52,7 @@ class ServerImpl final {
   }
 
  private:
-  // Class encompasing the state and logic needed to serve a request.
+  // Class encompassing the state and logic needed to serve a request.
   class CallData {
    public:
     // Take in the "service" instance (in this case representing an asynchronous

@@ -27,5 +27,5 @@ If things go smoothly, the client will save a flipped grayscale image in the spe
 
 ## Roadmap [v1.0.0]
 - [ ] Features
-  - [ ] CMake support
+  - [x] CMake support
   - [ ] Flatbuffers support

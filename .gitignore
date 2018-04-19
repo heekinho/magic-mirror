@@ -44,3 +44,7 @@ magic_mirror_client
 # Eclipse project files
 .project
 .cproject
+.settings
+
+# Build folder
+build/

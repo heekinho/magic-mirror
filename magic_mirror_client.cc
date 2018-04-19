@@ -141,10 +141,18 @@ int main(int argc, char** argv) {
 
   // Extract arguments
   for (int i = 1; i < argc; ++i) {
-    if ((argv[i] == "-t") || (argv[i] == "--type")) {
-      if (i + 1 < argc && ftmap.find(argv[i+1]) != ftmap.end()) { // Make sure we aren't at the end of argv!
-        flip_type = ftmap[ argv[i+1] ]; 
-        i++; // Increment 'i' so we don't get the argument as the next argv[i].
+    std::string arg = argv[i];
+    if ((arg == "-t") || (arg == "--type")) {
+      if (i + 1 < argc){
+        std::string type_str = argv[i+1];
+
+        if(ftmap.find(type_str) != ftmap.end()) {
+          flip_type = ftmap[type_str];
+          i++; // Increment 'i' so we don't get the argument as the next argv[i].
+        }
+        else {
+          std::cout << "Warning: type string not recognized." << std::endl;
+        }
       } else { // Uh-oh, there was no argument to the type option.
         std::cerr << "--type option requires one argument." << std::endl;
         return 1;

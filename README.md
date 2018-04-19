@@ -24,3 +24,8 @@ Run the client (in a different terminal):
     $ ./magic_mirror_client lena.png output.png [--type (horizontal|vertical|both)]
 
 If things go smoothly, the client will save a flipped grayscale image in the specified path.
+
+## Roadmap [v1.0.0]
+- [ ] Features
+  - [ ] CMake support
+  - [ ] Flatbuffers support

@@ -12,10 +12,10 @@ service ImageMirror {
 
 // The request message containing the image.
 message ImageFlipRequest {
-  string image = 1;
+  bytes image = 1;
 }
 
 // The response message containing the flipped image
 message ImageFlipReply {
-  string image = 1;
+  bytes image = 1;
 }

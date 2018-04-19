@@ -25,6 +25,9 @@
 
 #include "magicmirror.grpc.pb.h"
 
+#include <opencv2/core/core.hpp>
+#include <opencv2/highgui/highgui.hpp>
+
 using grpc::Channel;
 using grpc::ClientAsyncResponseReader;
 using grpc::ClientContext;
@@ -109,9 +112,28 @@ int main(int argc, char** argv) {
   // (use of InsecureChannelCredentials()).
   ImageMirrorClient mirror(grpc::CreateChannel(
       "localhost:50051", grpc::InsecureChannelCredentials()));
-  std::string image("This text represents an image to be flipped");
-  std::string reply = mirror.FlipImage(image);  // The actual RPC call!
-  std::cout << "Image flipped received: " << reply << std::endl;
+
+  if (argc <= 2){
+    std::cout << "usage: magic_mirror_client INPUT_IMAGE DESTINATION" << std::endl;
+      return 0;
+  }
+
+  std::string img = argv[1];
+  std::string destination_path = argv[2];
+
+  cv::Mat image = cv::imread(img, 0); // Read it grayscale
+
+  if(!image.data){
+    std::cout << "Could not open or find the image" << std::endl;
+    return -1;
+  }
+
+  std::string imgstr = std::string( reinterpret_cast<const char*>(image.data ) );
+  std::string reply = mirror.FlipImage( imgstr ); // The actual RPC call!
+
+  cv::Mat flipped = cv::Mat(image.rows, image.cols, CV_8UC1, &reply[0u]);
+  imwrite(destination_path, flipped);
+  std::cout << "Image saved: " << destination_path << std::endl;
 
   return 0;
 }

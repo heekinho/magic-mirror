@@ -12,6 +12,10 @@ LDFLAGS += -L/usr/local/lib `pkg-config --libs protobuf grpc++ grpc`\
            -Wl,--no-as-needed -lgrpc++_reflection -Wl,--as-needed\
            -ldl
 endif
+
+CLIENT_LDFLAGS = $(LDFLAGS)
+CLIENT_LDFLAGS += `pkg-config --cflags --libs opencv`
+
 PROTOC = protoc
 GRPC_CPP_PLUGIN = grpc_cpp_plugin
 GRPC_CPP_PLUGIN_PATH ?= `which $(GRPC_CPP_PLUGIN)`
@@ -23,7 +27,7 @@ vpath %.proto $(PROTOS_PATH)
 all: system-check magic_mirror_client magic_mirror_server
 
 magic_mirror_client: magicmirror.pb.o magicmirror.grpc.pb.o magic_mirror_client.o
-	$(CXX) $^ $(LDFLAGS) -o $@
+	$(CXX) $^ $(CLIENT_LDFLAGS) -o $@
 
 magic_mirror_server: magicmirror.pb.o magicmirror.grpc.pb.o magic_mirror_server.o
 	$(CXX) $^ $(LDFLAGS) -o $@

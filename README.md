@@ -21,8 +21,6 @@ Run the server, which will listen on port 50051:
 
 Run the client (in a different terminal):
 
-    $ ./magic_mirror_client lena.png output.png
+    $ ./magic_mirror_client lena.png output.png [--type (horizontal|vertical|both)]
 
-If things go smoothly, the client will save a doubly flipped grayscale image in the specified path.
-
-*Note: Sure this is a temporary output but we can test the skeleton (based on the [gRPC Basics: C++](https://github.com/grpc/grpc/blob/master/examples/cpp/cpptutorial.md) of the client-server architecture before we implement the complete system* 
+If things go smoothly, the client will save a flipped grayscale image in the specified path.

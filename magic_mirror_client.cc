@@ -36,6 +36,7 @@ using grpc::Status;
 using magicmirror::ImageFlipRequest;
 using magicmirror::ImageFlipReply;
 using magicmirror::ImageMirror;
+using magicmirror::FlipType;
 
 class ImageMirrorClient {
  public:
@@ -44,10 +45,13 @@ class ImageMirrorClient {
 
   // Assembles the client's payload, sends it and presents the response back
   // from the server.
-  std::string FlipImage(const std::string& image) {
+  std::string FlipImage(const std::string& image, int width, int height, FlipType fliptype) {
     // Data we are sending to the server.
     ImageFlipRequest request;
     request.set_image(image);
+    request.set_width(width);
+    request.set_height(height);
+    request.set_flip_type(fliptype);
 
     // Container for the data we expect from the server.
     ImageFlipReply reply;
@@ -105,6 +109,14 @@ class ImageMirrorClient {
   std::unique_ptr<ImageMirror::Stub> stub_;
 };
 
+static void show_usage(std::string name){
+  std::cerr << "Usage: " << name << " INPUT_IMAGE DESTINATION [,options]"
+            << "\n\nOptions:\n"
+            << "\t-h,--help\t\tShow this help message\n"
+            << "\t-t,--type TYPE\t\tSpecify the type of mirroring: (horizontal, vertical or both)"
+            << std::endl;
+}
+
 int main(int argc, char** argv) {
   // Instantiate the client. It requires a channel, out of which the actual RPCs
   // are created. This channel models a connection to an endpoint (in this case,
@@ -113,9 +125,31 @@ int main(int argc, char** argv) {
   ImageMirrorClient mirror(grpc::CreateChannel(
       "localhost:50051", grpc::InsecureChannelCredentials()));
 
+  // Default flip type
+  FlipType flip_type = FlipType::HORIZONTAL;
+
   if (argc <= 2){
-    std::cout << "usage: magic_mirror_client INPUT_IMAGE DESTINATION" << std::endl;
-      return 0;
+    show_usage(argv[0]);
+    return 0;
+  }
+
+  // LUT for extract arguments
+  std::map<std::string, FlipType> ftmap;
+  ftmap["horizontal"] = FlipType::HORIZONTAL;
+  ftmap["vertical"] = FlipType::VERTICAL;
+  ftmap["both"] = FlipType::BOTH;
+
+  // Extract arguments
+  for (int i = 1; i < argc; ++i) {
+    if ((argv[i] == "-t") || (argv[i] == "--type")) {
+      if (i + 1 < argc && ftmap.find(argv[i+1]) != ftmap.end()) { // Make sure we aren't at the end of argv!
+        flip_type = ftmap[ argv[i+1] ]; 
+        i++; // Increment 'i' so we don't get the argument as the next argv[i].
+      } else { // Uh-oh, there was no argument to the type option.
+        std::cerr << "--type option requires one argument." << std::endl;
+        return 1;
+      }  
+    }
   }
 
   std::string img = argv[1];
@@ -129,7 +163,7 @@ int main(int argc, char** argv) {
   }
 
   std::string imgstr = std::string( reinterpret_cast<const char*>(image.data ) );
-  std::string reply = mirror.FlipImage( imgstr ); // The actual RPC call!
+  std::string reply = mirror.FlipImage( imgstr , image.cols, image.rows, flip_type ); // The actual RPC call!
 
   cv::Mat flipped = cv::Mat(image.rows, image.cols, CV_8UC1, &reply[0u]);
   imwrite(destination_path, flipped);

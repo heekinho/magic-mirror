@@ -10,9 +10,19 @@ service ImageMirror {
   rpc FlipImage (ImageFlipRequest) returns (ImageFlipReply) {}
 }
 
+enum FlipType {
+  HORIZONTAL = 0;
+  VERTICAL = 1;
+  BOTH = 2; // Use a bitwise strategy instead?
+}
+
 // The request message containing the image.
 message ImageFlipRequest {
   bytes image = 1;
+  int32 width = 2;
+  int32 height = 3;
+  FlipType flip_type = 4;
+
 }
 
 // The response message containing the flipped image
